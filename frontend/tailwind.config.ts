@@ -7,7 +7,7 @@ const config: Config = {
     './src/app/**/*.{js,ts,jsx,tsx,mdx}',
   ],
   theme: {
-    extend: {}, // No font extensions needed in this simplified version
+    extend: {},
   },
   plugins: [],
 };
