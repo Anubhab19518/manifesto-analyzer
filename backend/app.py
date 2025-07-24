@@ -7,11 +7,8 @@ import fitz  # PyMuPDF
 import google.generativeai as genai
 from google.api_core import exceptions as google_exceptions
 from dotenv import load_dotenv
-import pytesseract
-from PIL import Image
-import io
 import hashlib
-from openai import OpenAI # Used for the DeepSeek API
+from openai import OpenAI
 
 # --- Setup ---
 load_dotenv()
@@ -20,44 +17,43 @@ app = FastAPI()
 # --- Caching Mechanism ---
 ANALYSIS_CACHE = {}
 
-# --- OCR Configuration ---
-try:
-    pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
-except Exception as e:
-    print(f"Tesseract not found at default path: {e}")
-
 # --- API Client Configuration ---
-# Configure Gemini API (Primary)
 try:
     gemini_api_key = os.getenv("GOOGLE_API_KEY")
-    if not gemini_api_key:
-        raise ValueError("Google API key not found.")
+    if not gemini_api_key: raise ValueError("Google API key not found.")
     genai.configure(api_key=gemini_api_key)
 except Exception as e:
     print(f"Error configuring Gemini API: {e}")
 
-# Configure DeepSeek API (Fallback)
 try:
     deepseek_api_key = os.getenv("DEEPSEEK_API_KEY")
-    if not deepseek_api_key:
-        raise ValueError("DeepSeek API key not found.")
-    # The DeepSeek API is compatible with the OpenAI client
+    if not deepseek_api_key: raise ValueError("DeepSeek API key not found.")
     deepseek_client = OpenAI(api_key=deepseek_api_key, base_url="https://api.deepseek.com/v1")
 except Exception as e:
     print(f"Error configuring DeepSeek client: {e}")
     deepseek_client = None
 
-
 # --- CORS Middleware ---
+# We will set the live URL later using an environment variable on Render
+ALLOWED_ORIGINS = [
+    "http://localhost:3000", # For local development
+]
+
+# Get the production URL from an environment variable if it exists
+RENDER_FRONTEND_URL = os.getenv("RENDER_FRONTEND_URL")
+if RENDER_FRONTEND_URL:
+    ALLOWED_ORIGINS.append(RENDER_FRONTEND_URL)
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# --- PROMPT ENGINEERING (UPDATED) ---
+
+# --- PROMPT ENGINEERING ---
 ANALYSIS_PROMPT_TEMPLATE = """
 You are an expert, unbiased political analyst AI based in India. Your task is to analyze the following political manifesto text.
 Provide a neutral, factual, and easy-to-understand breakdown. The analysis should be relevant to the Indian context.
@@ -83,13 +79,10 @@ Based on the text, provide ONLY a single, valid JSON object with the following s
 COMPARISON_PROMPT_TEMPLATE = """
 You are an expert, unbiased political analyst AI. Your task is to create a deep, insightful, and neutral side-by-side comparison of two political manifestos.
 Instead of using "Manifesto A" and "Manifesto B", you MUST use their actual party names: '{party_a_name}' and '{party_b_name}'.
-
 **Analysis for {party_a_name}:**
 {analysis_a}
-
 **Analysis for {party_b_name}:**
 {analysis_b}
-
 Generate ONLY a single, valid JSON object with the following structure. Do not wrap it in markdown.
 {{
   "party_names": {{ "party_a": "{party_a_name}", "party_b": "{party_b_name}" }},
@@ -99,44 +92,20 @@ Generate ONLY a single, valid JSON object with the following structure. Do not w
 }}
 """
 
-# --- API provider functions ---
-
 def get_gemini_response(prompt: str):
-    """Makes a request to the Gemini API."""
     print("Attempting to generate response with Gemini API...")
     model = genai.GenerativeModel('gemini-1.5-flash-latest')
-    safety_settings = [
-        {"category": "HARM_CATEGORY_HARASSMENT", "threshold": "BLOCK_NONE"},
-        {"category": "HARM_CATEGORY_HATE_SPEECH", "threshold": "BLOCK_NONE"},
-        {"category": "HARM_CATEGORY_SEXUALLY_EXPLICIT", "threshold": "BLOCK_NONE"},
-        {"category": "HARM_CATEGORY_DANGEROUS_CONTENT", "threshold": "BLOCK_NONE"},
-    ]
-    response = model.generate_content(
-        prompt,
-        generation_config=genai.types.GenerationConfig(
-            temperature=0.3,
-            response_mime_type="application/json",
-        ),
-        safety_settings=safety_settings
-    )
+    safety_settings = [{"category": c, "threshold": "BLOCK_NONE"} for c in ["HARM_CATEGORY_HARASSMENT", "HARM_CATEGORY_HATE_SPEECH", "HARM_CATEGORY_SEXUALLY_EXPLICIT", "HARM_CATEGORY_DANGEROUS_CONTENT"]]
+    response = model.generate_content(prompt, generation_config=genai.types.GenerationConfig(temperature=0.3, response_mime_type="application/json"), safety_settings=safety_settings)
     return json.loads(response.text)
 
 def get_deepseek_response(prompt: str):
-    """Makes a request to the DeepSeek API."""
-    if not deepseek_client:
-        raise HTTPException(status_code=500, detail="DeepSeek client not configured.")
-    
+    if not deepseek_client: raise HTTPException(status_code=500, detail="DeepSeek client not configured.")
     print("Attempting to generate response with DeepSeek API...")
-    response = deepseek_client.chat.completions.create(
-        model="deepseek-chat",
-        messages=[{"role": "user", "content": prompt}],
-        temperature=0.3,
-        response_format={"type": "json_object"}
-    )
+    response = deepseek_client.chat.completions.create(model="deepseek-chat", messages=[{"role": "user", "content": prompt}], temperature=0.3, response_format={"type": "json_object"})
     return json.loads(response.choices[0].message.content)
 
 def generate_llm_response_with_fallback(prompt: str):
-    """Orchestrator function with fallback logic."""
     try:
         return get_gemini_response(prompt)
     except google_exceptions.ResourceExhausted as e:
@@ -144,19 +113,16 @@ def generate_llm_response_with_fallback(prompt: str):
         try:
             return get_deepseek_response(prompt)
         except Exception as deepseek_e:
-            print(f"DeepSeek API also failed: {deepseek_e}")
             raise HTTPException(status_code=500, detail=f"Primary and fallback APIs failed. DeepSeek error: {deepseek_e}")
     except Exception as e:
-        print(f"An unexpected error occurred with Gemini API: {e}")
         raise HTTPException(status_code=500, detail=f"An error occurred with the primary AI model: {e}")
 
 def extract_party_name_from_filename(filename: str) -> str:
-    """A fallback function to guess the party name from the filename."""
     name = os.path.splitext(filename)[0].lower()
-    if 'bjp' in name or 'bharatiya janata' in name: return 'BJP'
-    if 'congress' in name or 'inc' in name: return 'Congress'
-    if 'cpim' in name or 'communist' in name: return 'CPI(M)'
-    if 'trinamool' in name or 'tmc' in name: return 'TMC'
+    if 'bjp' in name: return 'BJP'
+    if 'congress' in name: return 'Congress'
+    if 'cpim' in name: return 'CPI(M)'
+    if 'tmc' in name: return 'TMC'
     return name.replace('_', ' ').replace('-', ' ').title()
 
 @app.post("/analyze/")
@@ -176,46 +142,21 @@ async def analyze_manifesto(file: UploadFile = File(...)):
 
         doc = fitz.open(stream=pdf_bytes, filetype="pdf")
         
-        pages_text = []
+        # --- SIMPLIFIED TEXT EXTRACTION ---
+        full_text = ""
         for page in doc:
-            pages_text.append(page.get_text())
-
-        if sum(len(p) for p in pages_text) < 1000:
-            print("Standard text extraction failed, falling back to OCR...")
-            pages_text = []
-            for i, page in enumerate(doc):
-                if i >= 15:
-                    break
-                pix = page.get_pixmap()
-                img_data = pix.tobytes("png")
-                image = Image.open(io.BytesIO(img_data))
-                try:
-                    ocr_text = pytesseract.image_to_string(image, lang='eng')
-                    pages_text.append(ocr_text)
-                except pytesseract.TesseractNotFoundError:
-                     raise HTTPException(status_code=500, detail="Tesseract is not installed or not in your PATH.")
-
+            full_text += page.get_text()
         doc.close()
 
-        IMPORTANT_KEYWORDS = [
-            'economy', 'jobs', 'employment', 'farmers', 'agriculture', 'msp', 
-            'healthcare', 'hospitals', 'education', 'schools', 'women', 'youth', 
-            'tax', 'infra', 'infrastructure', 'defence', 'security', 'welfare'
-        ]
-        filtered_pages = []
-        for i, page_text in enumerate(pages_text):
-            if i == 0: continue
-            if any(keyword in page_text.lower() for keyword in IMPORTANT_KEYWORDS):
-                filtered_pages.append(page_text)
-        
-        filtered_text = "\n\n--- PAGE BREAK ---\n\n".join(filtered_pages)
-        
-        print(f"Original page count: {len(pages_text)}. Filtered page count: {len(filtered_pages)}.")
+        # Check for sufficient text. If not, raise a specific error for the frontend to handle.
+        if len(full_text.strip()) < 500:
+            raise HTTPException(
+                status_code=400, 
+                detail="This PDF could not be processed. It may be an image-based file or have an unsupported format. Please try a different, text-based PDF."
+            )
 
-        if len(filtered_text.strip()) < 500:
-            raise HTTPException(status_code=400, detail="Could not find enough relevant text in the PDF after filtering.")
-
-        final_text = filtered_text[:40000]
+        # Truncate text to send to the API to save tokens
+        final_text = full_text[:40000]
         
         prompt = ANALYSIS_PROMPT_TEMPLATE.format(text=final_text)
         analysis_data = generate_llm_response_with_fallback(prompt)
@@ -232,6 +173,7 @@ async def analyze_manifesto(file: UploadFile = File(...)):
         print(f"An unexpected error occurred in /analyze/: {e}")
         raise HTTPException(status_code=500, detail=f"An error occurred: {str(e)}")
 
+
 @app.post("/compare/")
 async def compare_manifestos(analyses: dict = Body(...)):
     try:
@@ -240,7 +182,6 @@ async def compare_manifestos(analyses: dict = Body(...)):
         if not analysis_a or not analysis_b:
             raise HTTPException(status_code=400, detail="Both Manifesto A and Manifesto B analyses are required.")
 
-        # --- FIX: Prioritize the party name from the AI analysis, with filename as a fallback ---
         party_a_name = analysis_a.get('party_name', extract_party_name_from_filename(analysis_a.get('filename', 'Party A')))
         party_b_name = analysis_b.get('party_name', extract_party_name_from_filename(analysis_b.get('filename', 'Party B')))
 
@@ -267,7 +208,7 @@ async def translate_text(data: dict = Body(...)):
     if not text or not language:
         raise HTTPException(status_code=400, detail="Text and target language are required.")
 
-    prompt = f"Translate the following text to {language}, considering the current context of West Bengal, India. Provide only the translated text, nothing else:\n\n{text}"
+    prompt = f"Translate the following text to {language}. Provide only the translated text, nothing else:\n\n{text}"
     
     try:
         model = genai.GenerativeModel('gemini-1.5-flash-latest')
@@ -275,5 +216,4 @@ async def translate_text(data: dict = Body(...)):
         translated_text = response.text
         return {"translated_text": translated_text}
     except Exception as e:
-        print(f"An unexpected error occurred in /translate/: {e}")
         raise HTTPException(status_code=500, detail=f"Translation failed: {e}")

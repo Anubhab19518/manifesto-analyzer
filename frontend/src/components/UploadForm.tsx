@@ -1,5 +1,5 @@
 import { useState, FormEvent } from 'react';
-import { ArrowPathIcon, DocumentArrowUpIcon } from '@heroicons/react/24/solid';
+import { ArrowPathIcon, DocumentArrowUpIcon, ExclamationTriangleIcon } from '@heroicons/react/24/solid';
 
 interface UploadFormProps {
     onAnalyze: (file: File) => void;
@@ -11,6 +11,7 @@ export default function UploadForm({ onAnalyze, isLoading, error }: UploadFormPr
     const [file, setFile] = useState<File | null>(null);
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => { if (e.target.files && e.target.files[0]) setFile(e.target.files[0]); };
     const handleSubmit = (e: FormEvent) => { e.preventDefault(); if (file) { onAnalyze(file); setFile(null); } };
+    
     return (
         <div className="max-w-2xl mx-auto glass-card p-6 rounded-2xl shadow-lg mb-16">
             <form onSubmit={handleSubmit}>
@@ -25,7 +26,15 @@ export default function UploadForm({ onAnalyze, isLoading, error }: UploadFormPr
                     {isLoading ? 'AI is Analyzing...' : 'Analyze Now'}
                 </button>
             </form>
-            {error && <p className="mt-4 text-center text-red-600 bg-red-100 p-3 rounded-lg">{error}</p>}
+            {error && (
+                <div className="mt-4 text-center text-red-800 bg-red-100 p-4 rounded-lg border border-red-200">
+                    <div className="flex items-center justify-center">
+                        <ExclamationTriangleIcon className="h-6 w-6 mr-2"/>
+                        <p className="font-bold">Analysis Failed</p>
+                    </div>
+                    <p className="text-sm mt-1">{error}</p>
+                </div>
+            )}
         </div>
     );
 }
