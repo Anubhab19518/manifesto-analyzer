@@ -27,7 +27,7 @@ export default function HomePage() {
     const formData = new FormData();
     formData.append('file', file);
     try {
-      const response = await fetch('http://127.0.0.1:8000/analyze/', { method: 'POST', body: formData });
+      const response = await fetch('https://manifesto-analyzer-backend.onrender.com/analyze/', { method: 'POST', body: formData });
       if (!response.ok) {
         const errData = await response.json();
         throw new Error(errData.detail || 'Analysis failed.');
@@ -59,7 +59,7 @@ export default function HomePage() {
     const analysisA = analyses.find(a => a.id === comparisonSelection[0]);
     const analysisB = analyses.find(a => a.id === comparisonSelection[1]);
     try {
-      const response = await fetch('http://127.0.0.1:8000/compare/', {
+      const response = await fetch('https://manifesto-analyzer-backend.onrender.com/compare/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ analysisA, analysisB })
