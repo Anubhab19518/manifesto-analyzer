@@ -1,18 +1,255 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Poppins:wght@300;400;500;600;700;800;900&display=swap');
 @import "tailwindcss";
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+
+:root {
+  --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  --accent-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  --glass-bg: linear-gradient(135deg, rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.6));
+  --glass-border: rgba(255, 255, 255, 0.5);
+  --shadow-light: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+  --shadow-medium: 0 16px 48px 0 rgba(31, 38, 135, 0.2);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
 
 body {
-  @apply bg-slate-100 text-slate-800 antialiased font-sans;
+  background-color: rgb(241 245 249);
+  color: rgb(30 41 59);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-family: 'Inter', 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  position: relative;
+  overflow-x: hidden;
+  line-height: 1.6;
+}
+
+/* Enhanced Background Animation */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  background: linear-gradient(-45deg, #667eea, #764ba2, #f093fb, #f5576c, #4facfe, #00f2fe);
+  background-size: 1200% 1200%;
+  animation: gradientShift 20s ease infinite;
+  z-index: -3;
+  opacity: 0.08;
+}
+
+body::after {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  background: 
+    radial-gradient(circle at 20% 80%, rgba(102, 126, 234, 0.4) 0%, transparent 60%),
+    radial-gradient(circle at 80% 20%, rgba(245, 87, 108, 0.3) 0%, transparent 60%),
+    radial-gradient(circle at 40% 40%, rgba(79, 172, 254, 0.3) 0%, transparent 60%),
+    radial-gradient(circle at 60% 70%, rgba(118, 75, 162, 0.2) 0%, transparent 50%);
+  animation: floatComplex 25s ease-in-out infinite;
+  z-index: -2;
+}
+
+/* Additional background layers */
+.bg-enhancement {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  pointer-events: none;
+  z-index: -1;
+  opacity: 0.6;
+}
+
+.bg-enhancement::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: 
+    conic-gradient(from 180deg at 50% 50%, 
+      rgba(99, 102, 241, 0.1) 0deg, 
+      rgba(168, 85, 247, 0.1) 60deg, 
+      rgba(236, 72, 153, 0.1) 120deg, 
+      rgba(248, 113, 113, 0.1) 180deg, 
+      rgba(251, 146, 60, 0.1) 240deg, 
+      rgba(34, 197, 94, 0.1) 300deg, 
+      rgba(99, 102, 241, 0.1) 360deg);
+  animation: rotate 30s linear infinite;
+}
+
+.bg-enhancement::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: 
+    repeating-linear-gradient(
+      45deg,
+      transparent,
+      transparent 2px,
+      rgba(255, 255, 255, 0.03) 2px,
+      rgba(255, 255, 255, 0.03) 4px
+    );
 }
 
 h1, h2, h3, h4, h5, h6 {
-    @apply font-bold;
+  font-weight: 700;
+  font-family: 'Poppins', 'Inter', system-ui, sans-serif;
 }
 
 .glass-card {
-  @apply bg-white/60 backdrop-blur-xl border border-white/30;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.6));
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  box-shadow: 
+    0 8px 32px 0 rgba(31, 38, 135, 0.15),
+    0 2px 16px 0 rgba(31, 38, 135, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.2);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glass-card:hover {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.7));
+  box-shadow: 
+    0 16px 48px 0 rgba(31, 38, 135, 0.2),
+    0 4px 24px 0 rgba(31, 38, 135, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.3);
+}
+
+/* Loader Screen */
+.loader-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(15, 23, 42, 0.95);
+  backdrop-filter: blur(8px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.loader-content {
+  text-align: center;
+  color: white;
+  max-width: 400px;
+  padding: 2rem;
+}
+
+.loader-spinner {
+  width: 60px;
+  height: 60px;
+  border: 4px solid rgba(255, 255, 255, 0.1);
+  border-left: 4px solid #3b82f6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 1.5rem;
+}
+
+.loader-text {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  font-family: 'Poppins', sans-serif;
+}
+
+.loader-subtext {
+  font-size: 0.875rem;
+  opacity: 0.7;
+  font-family: 'Inter', sans-serif;
+}
+
+/* Floating particles */
+.particle {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  opacity: 0.6;
+  animation: particleFloat 15s infinite ease-in-out;
+}
+
+.particle:nth-child(1) {
+  width: 6px;
+  height: 6px;
+  background: rgba(99, 102, 241, 0.8);
+  top: 20%;
+  left: 10%;
+  animation-delay: 0s;
+  animation-duration: 12s;
+}
+
+.particle:nth-child(2) {
+  width: 8px;
+  height: 8px;
+  background: rgba(236, 72, 153, 0.8);
+  top: 60%;
+  left: 80%;
+  animation-delay: 2s;
+  animation-duration: 16s;
+}
+
+.particle:nth-child(3) {
+  width: 4px;
+  height: 4px;
+  background: rgba(34, 197, 94, 0.8);
+  top: 80%;
+  left: 20%;
+  animation-delay: 4s;
+  animation-duration: 14s;
+}
+
+.particle:nth-child(4) {
+  width: 10px;
+  height: 10px;
+  background: rgba(251, 146, 60, 0.8);
+  top: 30%;
+  left: 70%;
+  animation-delay: 1s;
+  animation-duration: 18s;
+}
+
+.particle:nth-child(5) {
+  width: 5px;
+  height: 5px;
+  background: rgba(168, 85, 247, 0.8);
+  top: 70%;
+  left: 50%;
+  animation-delay: 3s;
+  animation-duration: 13s;
+}
+
+.particle:nth-child(6) {
+  width: 7px;
+  height: 7px;
+  background: rgba(59, 130, 246, 0.8);
+  top: 40%;
+  left: 30%;
+  animation-delay: 5s;
+  animation-duration: 15s;
 }
 
 @layer utilities {
@@ -20,7 +257,82 @@ h1, h2, h3, h4, h5, h6 {
     from { opacity: 0; transform: translateY(20px); }
     to { opacity: 1; transform: translateY(0); }
   }
+  
+  @keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    25% { background-position: 100% 50%; }
+    50% { background-position: 100% 100%; }
+    75% { background-position: 0% 100%; }
+    100% { background-position: 0% 50%; }
+  }
+  
+  @keyframes floatComplex {
+    0%, 100% { 
+      transform: translateY(0px) rotate(0deg) scale(1); 
+      opacity: 0.8;
+    }
+    25% { 
+      transform: translateY(-30px) rotate(90deg) scale(1.1); 
+      opacity: 0.6;
+    }
+    50% { 
+      transform: translateY(-20px) rotate(180deg) scale(0.9); 
+      opacity: 1;
+    }
+    75% { 
+      transform: translateY(-40px) rotate(270deg) scale(1.05); 
+      opacity: 0.7;
+    }
+  }
+  
+  @keyframes rotate {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+  
+  @keyframes particleFloat {
+    0%, 100% { 
+      transform: translateY(0px) translateX(0px) scale(1);
+      opacity: 0.6;
+    }
+    25% { 
+      transform: translateY(-100px) translateX(50px) scale(1.2);
+      opacity: 0.8;
+    }
+    50% { 
+      transform: translateY(-80px) translateX(-30px) scale(0.8);
+      opacity: 1;
+    }
+    75% { 
+      transform: translateY(-120px) translateX(80px) scale(1.1);
+      opacity: 0.7;
+    }
+  }
+  
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+  
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  
+  @keyframes floatUpDown {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-20px); }
+  }
+  
   .animate-fade-in-up {
     animation: fade-in-up 0.6s ease-out forwards;
+  }
+  
+  .animate-gradient {
+    animation: gradientShift 15s ease infinite;
+  }
+  
+  .shadow-3xl {
+    box-shadow: 0 35px 60px -12px rgba(0, 0, 0, 0.25);
   }
 }

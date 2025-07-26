@@ -37,6 +37,8 @@ except Exception as e:
 # We will set the live URL later using an environment variable on Render
 ALLOWED_ORIGINS = [
     "http://localhost:3000", # For local development
+    "https://manifesto-analyzer.vercel.app", # Production frontend on Vercel
+    "https://manifesto-analyzer-backend.onrender.com", # Add the backend URL as well
 ]
 
 # Get the production URL from an environment variable if it exists
@@ -44,13 +46,30 @@ RENDER_FRONTEND_URL = os.getenv("RENDER_FRONTEND_URL")
 if RENDER_FRONTEND_URL:
     ALLOWED_ORIGINS.append(RENDER_FRONTEND_URL)
 
+# Debug: Print the allowed origins for troubleshooting
+print(f"CORS Allowed Origins: {ALLOWED_ORIGINS}")
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
+    expose_headers=["*"],
 )
+
+# --- Health Check and Test Endpoints ---
+@app.get("/")
+async def root():
+    return {"message": "Manifesto Analyzer API is running"}
+
+@app.get("/health")
+async def health_check():
+    return {"status": "healthy", "cors_origins": ALLOWED_ORIGINS}
+
+@app.options("/{full_path:path}")
+async def options_handler():
+    return {"message": "OK"}
 
 
 # --- PROMPT ENGINEERING ---

@@ -17,6 +17,8 @@ export interface AnalysisResult {
     farmers: AudienceDetail;
     corporate_sector: AudienceDetail;
   };
+  // Optional translated versions
+  [key: string]: any; // For dynamic translated_summary_* fields
 }
 
 export interface ComparisonResult {
