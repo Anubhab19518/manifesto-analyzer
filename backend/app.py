@@ -150,22 +150,28 @@ async def analyze_manifesto(file: UploadFile = File(...)):
         raise HTTPException(status_code=400, detail="Please upload a PDF.")
 
     try:
+        print("📁 Stage 1: Reading uploaded file...")
         pdf_bytes = await file.read()
         file_hash = hashlib.sha256(pdf_bytes).hexdigest()
 
         if file_hash in ANALYSIS_CACHE:
-            print(f"CACHE HIT: Returning cached result for file: {file.filename}")
+            print(f"💾 CACHE HIT: Returning cached result for file: {file.filename}")
             return ANALYSIS_CACHE[file_hash].copy()
         
-        print(f"CACHE MISS: Analyzing new file: {file.filename}")
+        print(f"🔍 CACHE MISS: Analyzing new file: {file.filename}")
+        print("📄 Stage 2: Extracting text from PDF...")
 
         doc = fitz.open(stream=pdf_bytes, filetype="pdf")
         
         # --- SIMPLIFIED TEXT EXTRACTION ---
         full_text = ""
-        for page in doc:
+        for page_num, page in enumerate(doc):
             full_text += page.get_text()
+            if page_num % 5 == 0:  # Log progress every 5 pages
+                print(f"   Processed page {page_num + 1}/{len(doc)}")
         doc.close()
+
+        print("✅ Stage 3: Text extraction completed")
 
         # Check for sufficient text. If not, raise a specific error for the frontend to handle.
         if len(full_text.strip()) < 500:
@@ -174,22 +180,26 @@ async def analyze_manifesto(file: UploadFile = File(...)):
                 detail="This PDF could not be processed. It may be an image-based file or have an unsupported format. Please try a different, text-based PDF."
             )
 
+        print("🧠 Stage 4: Preparing AI analysis...")
         # Truncate text to send to the API to save tokens
         final_text = full_text[:40000]
         
         prompt = ANALYSIS_PROMPT_TEMPLATE.format(text=final_text)
+        print("🤖 Stage 5: Processing with AI models...")
         analysis_data = generate_llm_response_with_fallback(prompt)
         
+        print("✨ Stage 6: Finalizing analysis...")
         analysis_data['filename'] = file.filename
         
         ANALYSIS_CACHE[file_hash] = analysis_data.copy()
         
+        print("🎉 Analysis completed successfully!")
         return analysis_data
 
     except HTTPException as e:
         raise e
     except Exception as e:
-        print(f"An unexpected error occurred in /analyze/: {e}")
+        print(f"❌ An unexpected error occurred in /analyze/: {e}")
         raise HTTPException(status_code=500, detail=f"An error occurred: {str(e)}")
 
 

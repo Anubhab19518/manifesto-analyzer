@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Poppins:wght@300;400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Poppins:wght@300;400;500;600;700;800;900&family=Playfair+Display:wght@400;500;600;700;800;900&family=Source+Sans+Pro:wght@300;400;600;700;900&display=swap');
 @import "tailwindcss";
 
 :root {
@@ -24,10 +24,11 @@ body {
   color: rgb(30 41 59);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  font-family: 'Inter', 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  font-family: 'Source Sans Pro', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
   position: relative;
   overflow-x: hidden;
   line-height: 1.6;
+  font-weight: 400;
 }
 
 /* Enhanced Background Animation */
@@ -111,7 +112,25 @@ body::after {
 
 h1, h2, h3, h4, h5, h6 {
   font-weight: 700;
-  font-family: 'Poppins', 'Inter', system-ui, sans-serif;
+  font-family: 'Playfair Display', 'Poppins', 'Inter', system-ui, sans-serif;
+  letter-spacing: -0.025em;
+}
+
+h1 {
+  font-family: 'Playfair Display', 'Poppins', serif;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+}
+
+.text-content {
+  font-family: 'Source Sans Pro', 'Inter', sans-serif;
+  line-height: 1.7;
+}
+
+.button-text {
+  font-family: 'Inter', 'Source Sans Pro', sans-serif;
+  font-weight: 600;
+  letter-spacing: 0.025em;
 }
 
 .glass-card {
@@ -168,6 +187,20 @@ h1, h2, h3, h4, h5, h6 {
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin: 0 auto 1.5rem;
+  position: relative;
+}
+
+.loader-spinner::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  right: 2px;
+  bottom: 2px;
+  border: 2px solid transparent;
+  border-left: 2px solid #8b5cf6;
+  border-radius: 50%;
+  animation: spin 1.5s linear infinite reverse;
 }
 
 .loader-text {
@@ -183,7 +216,18 @@ h1, h2, h3, h4, h5, h6 {
   font-family: 'Inter', sans-serif;
 }
 
-/* Floating particles */
+/* Floating elements */
+.floating-element {
+  position: absolute;
+  pointer-events: none;
+  opacity: 0.6;
+  animation: floatUpDown 6s ease-in-out infinite;
+  transition: all 0.5s ease-out;
+}
+
+.floating-element:nth-child(1) { animation-delay: 0s; }
+.floating-element:nth-child(2) { animation-delay: 2s; }
+.floating-element:nth-child(3) { animation-delay: 4s; }
 .particle {
   position: absolute;
   border-radius: 50%;
@@ -322,6 +366,21 @@ h1, h2, h3, h4, h5, h6 {
   @keyframes floatUpDown {
     0%, 100% { transform: translateY(0px); }
     50% { transform: translateY(-20px); }
+  }
+  
+  @keyframes progressPulse {
+    0%, 100% { 
+      box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+      transform: scaleY(1);
+    }
+    50% { 
+      box-shadow: 0 0 20px rgba(59, 130, 246, 0.8);
+      transform: scaleY(1.1);
+    }
+  }
+  
+  .progress-bar-active {
+    animation: progressPulse 2s ease-in-out infinite;
   }
   
   .animate-fade-in-up {

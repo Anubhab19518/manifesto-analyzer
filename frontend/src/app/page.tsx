@@ -16,8 +16,11 @@ export default function HomePage() {
   const [comparisonResult, setComparisonResult] = useState<ComparisonResult | null>(null);
 
   const [isLoading, setIsLoading] = useState(false);
+  const [loadingProgress, setLoadingProgress] = useState(0);
+  const [loadingStage, setLoadingStage] = useState('');
+  const [loadingStartTime, setLoadingStartTime] = useState<number | null>(null);
   const [isComparing, setIsComparing] = useState(false);
-  const [isTranslating, setIsTranslating] = useState<string | null>(null);
+  const [isTranslating, setIsTranslating] = useState<{id: string, language: string} | null>(null);
   const [translatedTexts, setTranslatedTexts] = useState<{ [key: string]: string }>({});
   const [error, setError] = useState<string | null>(null);
   const [speakingId, setSpeakingId] = useState<string | null>(null);
@@ -38,23 +41,76 @@ export default function HomePage() {
 
   const handleAnalyzeSubmit = async (file: File) => {
     setIsLoading(true);
+    setLoadingProgress(0);
+    setLoadingStartTime(Date.now());
     setError(null);
     setComparisonResult(null);
+    
+    // Progress simulation with realistic stages
+    const stages = [
+      { message: "Preparing upload...", progress: 5, delay: 500 },
+      { message: "Uploading document...", progress: 15, delay: 1000 },
+      { message: "Extracting text from PDF...", progress: 30, delay: 2000 },
+      { message: "Analyzing content structure...", progress: 50, delay: 3000 },
+      { message: "Processing with AI models...", progress: 75, delay: 8000 },
+      { message: "Generating insights...", progress: 90, delay: 2000 },
+    ];
+
+    // Start progress simulation
+    let currentStageIndex = 0;
+    const progressInterval = setInterval(() => {
+      if (currentStageIndex < stages.length) {
+        const stage = stages[currentStageIndex];
+        setLoadingStage(stage.message);
+        setLoadingProgress(stage.progress);
+        currentStageIndex++;
+      }
+    }, 1500);
+
     const formData = new FormData();
     formData.append('file', file);
+    
     try {
-      const response = await fetch(API_CONFIG.ENDPOINTS.ANALYZE, { method: 'POST', body: formData });
+      const response = await fetch(API_CONFIG.ENDPOINTS.ANALYZE, { 
+        method: 'POST', 
+        body: formData 
+      });
+      
+      clearInterval(progressInterval);
+      
       if (!response.ok) {
         const errData = await response.json();
         throw new Error(errData.detail || 'Analysis failed.');
       }
+      
+      // Set completion
+      setLoadingStage("Finalizing analysis...");
+      setLoadingProgress(95);
+      
       const result = await response.json();
       const newAnalysis: AnalysisResult = { ...result, id: crypto.randomUUID() };
-      setAnalyses(prev => [...prev, newAnalysis]);
+      
+      // Complete progress
+      setLoadingProgress(100);
+      setLoadingStage("Analysis completed!");
+      
+      // Small delay to show completion
+      setTimeout(() => {
+        setAnalyses(prev => [...prev, newAnalysis]);
+        showToast("Analysis completed successfully!", 'success');
+      }, 500);
+      
     } catch (err: any) {
+      clearInterval(progressInterval);
       setError(err.message);
+      showToast(`Analysis failed: ${err.message}`, 'error');
     } finally {
-      setIsLoading(false);
+      setTimeout(() => {
+        setIsLoading(false);
+        setLoadingProgress(0);
+        setLoadingStage('');
+        setLoadingStartTime(null);
+      }, 1000); // Delay to show completion
     }
   };
 
@@ -126,7 +182,7 @@ export default function HomePage() {
       return;
     }
     
-    setIsTranslating(analysisId);
+    setIsTranslating({id: analysisId, language});
     setError(null);
     
     try {
@@ -150,12 +206,13 @@ export default function HomePage() {
         [translationKey]: translatedText
       }));
       
-      // Update the analyses state to include translated text
+      // Update the analyses state to include translated text and set current language
       setAnalyses(prev => prev.map(analysis => 
         analysis.id === analysisId 
           ? { 
               ...analysis, 
-              [`translated_summary_${language.toLowerCase()}`]: translatedText 
+              [`translated_summary_${language.toLowerCase()}`]: translatedText,
+              currentLanguage: language as 'Bengali' | 'Hindi'
             }
           : analysis
       ));
@@ -169,6 +226,33 @@ export default function HomePage() {
     } finally {
       setIsTranslating(null);
     }
+  };
+
+  const handleResetTranslation = (analysisId: string) => {
+    // Reset to English
+    setAnalyses(prev => prev.map(analysis => 
+      analysis.id === analysisId 
+        ? { ...analysis, currentLanguage: 'English' }
+        : analysis
+    ));
+    showToast('Reset to English text', 'info');
+  };
+
+  const handleSwitchLanguage = (analysisId: string, language: 'English' | 'Bengali' | 'Hindi') => {
+    // Switch to the specified language
+    setAnalyses(prev => prev.map(analysis => 
+      analysis.id === analysisId 
+        ? { ...analysis, currentLanguage: language }
+        : analysis
+    ));
+    
+    const languageNames = {
+      'English': 'English',
+      'Bengali': 'Bengali (বাংলা)',
+      'Hindi': 'Hindi (हिंदी)'
+    };
+    
+    showToast(`Switched to ${languageNames[language]}`, 'info');
   };
 
   useEffect(() => {
@@ -185,7 +269,12 @@ export default function HomePage() {
       <div className="bg-enhancement"></div>
       
       {/* Loader Component */}
-      <Loader isVisible={isLoading} />
+      <Loader 
+        isVisible={isLoading} 
+        progress={loadingProgress}
+        currentStage={loadingStage}
+        estimatedTime={loadingStartTime ? Math.max(15, 25 - Math.floor((Date.now() - loadingStartTime) / 1000)) : 25}
+      />
       
       {/* Floating Particles */}
       <div className="fixed inset-0 pointer-events-none z-0">
@@ -227,11 +316,14 @@ export default function HomePage() {
       <div className="absolute top-0 left-0 w-full h-[500px] bg-gradient-to-br from-blue-100/80 via-indigo-100/60 to-purple-100/80 -z-10" />
       <main className="container mx-auto p-4 md:p-8 relative z-10">
         <header className="text-center mb-16">
-          <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight bg-gradient-to-r from-slate-900 via-blue-900 to-purple-900 bg-clip-text text-transparent drop-shadow-lg">
+          <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight bg-gradient-to-r from-slate-900 via-blue-900 to-purple-900 bg-clip-text text-transparent drop-shadow-lg mb-6">
             Political Manifesto Analyzer
           </h1>
-          <p className="mt-4 text-lg text-slate-600 max-w-2xl mx-auto leading-relaxed">
-            Get unbiased, AI-powered insights into political promises. Powered by Google Gemini.
+          <p className="mt-6 text-xl md:text-2xl text-slate-600 max-w-3xl mx-auto leading-relaxed text-content font-medium">
+            Get unbiased, AI-powered insights into political promises with advanced analysis and multilingual support.
+          </p>
+          <p className="mt-4 text-base text-slate-500 max-w-2xl mx-auto text-content">
+            Powered by Google Gemini • Supports Bengali & Hindi Translation • Real-time Analysis
           </p>
         </header>
 
@@ -244,11 +336,14 @@ export default function HomePage() {
                         <ReportCard
                             analysis={analysis}
                             isSelectedForCompare={comparisonSelection.includes(analysis.id)}
-                            isTranslating={isTranslating === analysis.id}
+                            isTranslating={isTranslating?.id === analysis.id}
+                            translatingLanguage={isTranslating?.id === analysis.id ? isTranslating?.language : undefined}
                             isSpeaking={speakingId === analysis.id}
                             onCompareToggle={handleToggleCompare}
                             onToggleSpeech={handleToggleSpeech}
                             onTranslate={handleTranslate}
+                            onResetTranslation={handleResetTranslation}
+                            onSwitchLanguage={handleSwitchLanguage}
                         />
                     </div>
                 ))}

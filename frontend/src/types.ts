@@ -17,6 +17,7 @@ export interface AnalysisResult {
     farmers: AudienceDetail;
     corporate_sector: AudienceDetail;
   };
+  currentLanguage?: 'English' | 'Bengali' | 'Hindi'; // Track which language is currently displayed
   // Optional translated versions
   [key: string]: any; // For dynamic translated_summary_* fields
 }

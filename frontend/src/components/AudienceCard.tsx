@@ -10,8 +10,8 @@ export default function AudienceCard({ group, details }: AudienceCardProps) {
     return (
         <div className="bg-gradient-to-br from-slate-50/90 to-white/90 p-6 rounded-xl border border-slate-200/80 shadow-sm hover:shadow-md transition-all duration-300 backdrop-blur-sm">
             <div className="flex justify-between items-center mb-4">
-                <h4 className="font-bold capitalize text-slate-800 text-lg">{group.replace('_', ' ')}</h4>
-                <span className="text-lg font-bold text-indigo-700 bg-indigo-100 px-3 py-1 rounded-full">{score}/10</span>
+                <h4 className="font-bold capitalize text-slate-800 text-lg text-content">{group.replace('_', ' ')}</h4>
+                <span className="text-lg font-bold text-indigo-700 bg-indigo-100 px-3 py-1 rounded-full button-text">{score}/10</span>
             </div>
             <div className="w-full bg-slate-200 rounded-full h-3 mb-4 overflow-hidden">
                 <div 
@@ -19,11 +19,16 @@ export default function AudienceCard({ group, details }: AudienceCardProps) {
                     style={{ width: `${score * 10}%` }}
                 ></div>
             </div>
-            <ul className="list-disc list-inside text-sm text-slate-700 my-4 pl-2 space-y-2">
-                {details.policies?.map(policy => <li key={policy} className="leading-relaxed">{policy}</li>)}
+            <ul className="text-base text-slate-700 my-4 space-y-3 text-content">
+                {details.policies?.map(policy => (
+                    <li key={policy} className="flex items-start leading-relaxed">
+                        <span className="w-2 h-2 bg-indigo-500 rounded-full mr-3 mt-2 flex-shrink-0"></span>
+                        <span>{policy}</span>
+                    </li>
+                ))}
             </ul>
             <div className="bg-gradient-to-r from-indigo-50 to-purple-50 p-4 rounded-lg border-l-4 border-indigo-400">
-                <p className="text-sm italic text-indigo-900 font-medium">"{details.example}"</p>
+                <p className="text-sm italic text-indigo-900 font-medium text-content">"{details.example}"</p>
             </div>
         </div>
     );
