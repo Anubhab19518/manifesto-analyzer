@@ -314,15 +314,15 @@ export default function HomePage() {
       </div>
       
       <div className="absolute top-0 left-0 w-full h-[500px] bg-gradient-to-br from-blue-100/80 via-indigo-100/60 to-purple-100/80 -z-10" />
-      <main className="container mx-auto p-4 md:p-8 relative z-10">
-        <header className="text-center mb-16">
-          <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight bg-gradient-to-r from-slate-900 via-blue-900 to-purple-900 bg-clip-text text-transparent drop-shadow-lg mb-6">
+      <main className="container mx-auto p-4 md:p-6 lg:p-8 relative z-10">
+        <header className="text-center mb-12 md:mb-16">
+          <h1 className="main-title tracking-tight bg-gradient-to-r from-slate-900 via-blue-900 to-purple-900 bg-clip-text text-transparent drop-shadow-lg mb-4 md:mb-6">
             Political Manifesto Analyzer
           </h1>
-          <p className="mt-6 text-xl md:text-2xl text-slate-600 max-w-3xl mx-auto leading-relaxed text-content font-medium">
+          <p className="mt-4 md:mt-6 text-lg md:text-xl lg:text-2xl text-slate-600 max-w-3xl mx-auto leading-relaxed text-content font-medium px-4">
             Get unbiased, AI-powered insights into political promises with advanced analysis and multilingual support.
           </p>
-          <p className="mt-4 text-base text-slate-500 max-w-2xl mx-auto text-content">
+          <p className="mt-3 md:mt-4 text-sm md:text-base text-slate-500 max-w-2xl mx-auto text-content px-4">
             Powered by Google Gemini • Supports Bengali & Hindi Translation • Real-time Analysis
           </p>
         </header>

@@ -36,23 +36,23 @@ export default function ReportCard({ analysis, isSelectedForCompare, onCompareTo
     
     return (
         <div className={`glass-card rounded-3xl shadow-2xl transition-all duration-500 transform hover:-translate-y-3 hover:shadow-3xl ${isSelectedForCompare ? 'ring-4 ring-indigo-500 ring-opacity-50 shadow-indigo-200/50' : 'ring-1 ring-transparent hover:ring-2 hover:ring-slate-200'}`}>
-            <div className="p-8">
+            <div className="p-6 md:p-8">
                 <div className="flex justify-between items-start mb-6">
-                    <div>
-                        <h2 className="text-3xl font-bold bg-gradient-to-r from-slate-900 to-indigo-800 bg-clip-text text-transparent">{partyName}</h2>
-                        <p className="text-indigo-600 font-semibold capitalize text-lg mt-1 text-content">{analysis.sentiment || "N/A"} Tone</p>
+                    <div className="flex-1 min-w-0">
+                        <h2 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-slate-900 to-indigo-800 bg-clip-text text-transparent heading-text break-words">{partyName}</h2>
+                        <p className="text-indigo-600 font-semibold capitalize text-base md:text-lg mt-1 text-content">{analysis.sentiment || "N/A"} Tone</p>
                     </div>
-                    <button onClick={() => onCompareToggle(analysis.id)} title="Select for comparison" className={`p-3 rounded-full transition-all duration-300 ${isSelectedForCompare ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white scale-110 shadow-lg' : 'bg-slate-200/70 text-slate-600 hover:bg-indigo-100 hover:scale-105'}`}>
-                        <CheckCircleIcon className="h-8 w-8" />
+                    <button onClick={() => onCompareToggle(analysis.id)} title="Select for comparison" className={`p-2 md:p-3 rounded-full transition-all duration-300 flex-shrink-0 ml-3 ${isSelectedForCompare ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white scale-110 shadow-lg' : 'bg-slate-200/70 text-slate-600 hover:bg-indigo-100 hover:scale-105'}`}>
+                        <CheckCircleIcon className="h-6 w-6 md:h-8 md:w-8" />
                     </button>
                 </div>
 
                 <div className="mt-6 space-y-4">
-                    <h3 className="font-semibold text-xl text-slate-800 flex items-center">
-                        <span className="w-1 h-6 bg-gradient-to-b from-blue-500 to-indigo-500 rounded-full mr-3"></span>
+                    <h3 className="font-semibold text-lg md:text-xl text-slate-800 flex items-center heading-text">
+                        <span className="w-1 h-5 md:h-6 bg-gradient-to-b from-blue-500 to-indigo-500 rounded-full mr-3"></span>
                         Summary
                     </h3>
-                    <div className="flex space-x-3 mb-4">
+                    <div className="flex flex-wrap gap-3 mb-4">
                         <button 
                             onClick={() => onToggleSpeech(currentDisplay.text, analysis.id)} 
                             title={isSpeaking ? "Stop" : "Listen"} 
@@ -164,20 +164,20 @@ export default function ReportCard({ analysis, isSelectedForCompare, onCompareTo
                 </div>
 
                 <div className="mt-8">
-                    <h3 className="font-semibold text-xl text-slate-800 mb-4 flex items-center">
-                        <span className="w-1 h-6 bg-gradient-to-b from-indigo-500 to-purple-500 rounded-full mr-3"></span>
+                    <h3 className="font-semibold text-lg md:text-xl text-slate-800 mb-4 flex items-center heading-text">
+                        <span className="w-1 h-5 md:h-6 bg-gradient-to-b from-indigo-500 to-purple-500 rounded-full mr-3"></span>
                         Key Themes
                     </h3>
                     <div className="flex flex-wrap gap-3">
                         {analysis.key_themes?.length > 0 ? (
-                            analysis.key_themes.map(theme => <span key={theme} className="bg-gradient-to-r from-indigo-100 to-purple-100 text-indigo-800 text-sm font-semibold px-4 py-2 rounded-full border border-indigo-200 hover:shadow-md transition-shadow">{theme}</span>)
+                            analysis.key_themes.map(theme => <span key={theme} className="bg-gradient-to-r from-indigo-100 to-purple-100 text-indigo-800 text-sm font-semibold px-3 md:px-4 py-2 rounded-full border border-indigo-200 hover:shadow-md transition-shadow">{theme}</span>)
                         ) : <p className="text-sm text-slate-500">No key themes identified.</p>}
                     </div>
                 </div>
 
                 <div className="mt-8">
-                    <h3 className="font-semibold text-xl text-slate-800 mb-5 flex items-center">
-                        <span className="w-1 h-6 bg-gradient-to-b from-green-500 to-blue-500 rounded-full mr-3"></span>
+                    <h3 className="font-semibold text-lg md:text-xl text-slate-800 mb-5 flex items-center heading-text">
+                        <span className="w-1 h-5 md:h-6 bg-gradient-to-b from-green-500 to-blue-500 rounded-full mr-3"></span>
                         Breakdown by Audience
                     </h3>
                     <div className="space-y-5">
