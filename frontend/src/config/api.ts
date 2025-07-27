@@ -1,7 +1,7 @@
 // API Configuration
 const API_CONFIG = {
   // Toggle this for local development vs production
-  USE_LOCAL: true, // Set to false for production
+  USE_LOCAL: false, // Set to false for production
   
   LOCAL_BASE_URL: 'http://localhost:8000',
   PRODUCTION_BASE_URL: 'https://manifesto-analyzer-backend.onrender.com',
