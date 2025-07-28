@@ -443,3 +443,25 @@ h2, h3 {
     box-shadow: 0 35px 60px -12px rgba(0, 0, 0, 0.25);
   }
 }
+
+/* Mobile-specific spacing improvements */
+@media (max-width: 640px) {
+  .container {
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+  }
+  
+  .glass-card {
+    margin: 0 0.25rem;
+  }
+  
+  /* Ensure proper spacing between sections on mobile */
+  main > * + * {
+    margin-top: 2rem;
+  }
+  
+  /* Better mobile button sizing */
+  button {
+    min-height: 44px; /* iOS touch target minimum */
+  }
+}

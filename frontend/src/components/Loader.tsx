@@ -21,6 +21,28 @@ export default function Loader({ isVisible, progress, currentStage, estimatedTim
   const [dynamicProgress, setDynamicProgress] = useState(0);
   const [elapsedTime, setElapsedTime] = useState(0);
   const [currentMessage, setCurrentMessage] = useState(defaultStages[0].message);
+  const [startTime, setStartTime] = useState<number | null>(null);
+  const [progressHistory, setProgressHistory] = useState<{time: number, progress: number}[]>([]);
+
+  // Calculate dynamic estimated time based on progress rate
+  const calculateDynamicEstimate = () => {
+    if (progressHistory.length < 2) return estimatedTime || 30;
+    
+    const recent = progressHistory.slice(-3); // Use last 3 data points
+    if (recent.length < 2) return estimatedTime || 30;
+    
+    const progressRate = (recent[recent.length - 1].progress - recent[0].progress) / 
+                        ((recent[recent.length - 1].time - recent[0].time) / 1000); // Convert to seconds
+    
+    if (progressRate <= 0) return estimatedTime || 30;
+    
+    const currentProgress = progress !== undefined ? progress : dynamicProgress;
+    const remainingProgress = 100 - currentProgress;
+    const estimatedRemainingTime = remainingProgress / progressRate;
+    
+    // Clamp between 5 and 90 seconds for reasonable estimates
+    return Math.max(5, Math.min(90, Math.round(estimatedRemainingTime)));
+  };
 
   useEffect(() => {
     if (!isVisible) {
@@ -28,12 +50,27 @@ export default function Loader({ isVisible, progress, currentStage, estimatedTim
       setDynamicProgress(0);
       setElapsedTime(0);
       setCurrentMessage(defaultStages[0].message);
+      setStartTime(null);
+      setProgressHistory([]);
       return;
+    }
+
+    // Set start time
+    if (startTime === null) {
+      setStartTime(Date.now());
     }
 
     // If we have external progress and stage, use them
     if (progress !== undefined) {
       setDynamicProgress(progress);
+      
+      // Track progress history for dynamic estimation
+      const currentTime = Date.now();
+      setProgressHistory(prev => {
+        const newHistory = [...prev, { time: currentTime, progress: progress }];
+        // Keep only last 5 measurements for accuracy
+        return newHistory.slice(-5);
+      });
     }
     
     if (currentStage) {
@@ -60,7 +97,7 @@ export default function Loader({ isVisible, progress, currentStage, estimatedTim
 
       return () => clearInterval(progressInterval);
     }
-  }, [isVisible, progress, currentStage, currentStageIndex]);
+  }, [isVisible, progress, currentStage, currentStageIndex, startTime]);
 
   // Track elapsed time
   useEffect(() => {
@@ -76,7 +113,10 @@ export default function Loader({ isVisible, progress, currentStage, estimatedTim
   if (!isVisible) return null;
 
   const progressPercentage = progress !== undefined ? progress : dynamicProgress;
-  const estimatedRemaining = estimatedTime ? Math.max(0, estimatedTime - elapsedTime) : null;
+  
+  // Use dynamic estimation or fallback to original estimate
+  const dynamicEstimate = calculateDynamicEstimate();
+  const estimatedRemaining = Math.max(0, dynamicEstimate - elapsedTime);
 
   return (
     <div className="loader-overlay">
@@ -111,8 +151,11 @@ export default function Loader({ isVisible, progress, currentStage, estimatedTim
           {elapsedTime > 0 && (
             <div className="flex justify-center space-x-4 text-xs">
               <span>Elapsed: {elapsedTime}s</span>
-              {estimatedRemaining !== null && (
-                <span>Remaining: ~{estimatedRemaining}s</span>
+              {estimatedRemaining > 0 && (
+                <span>Remaining: ~{Math.round(estimatedRemaining)}s</span>
+              )}
+              {progressPercentage > 80 && (
+                <span className="text-green-300">Almost done!</span>
               )}
             </div>
           )}

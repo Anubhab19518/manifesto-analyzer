@@ -330,9 +330,10 @@ export default function HomePage() {
         <UploadForm onAnalyze={handleAnalyzeSubmit} isLoading={isLoading} error={error} />
 
         {analyses.length > 0 && (
-            <div className={`grid gap-8 ${analyses.length === 1 ? 'grid-cols-1 place-items-center' : 'grid-cols-1 md:grid-cols-2'}`}>
-                {analyses.map((analysis, index) => (
-                    <div key={analysis.id} className={`w-full ${analyses.length === 1 ? 'max-w-3xl' : ''} opacity-0 animate-fade-in-up`} style={{ animationDelay: `${index * 100}ms` }}>
+            <div className="mt-12 md:mt-16">
+                <div className={`grid gap-6 md:gap-8 ${analyses.length === 1 ? 'grid-cols-1 place-items-center' : 'grid-cols-1 md:grid-cols-2'}`}>
+                    {analyses.map((analysis, index) => (
+                        <div key={analysis.id} className={`w-full ${analyses.length === 1 ? 'max-w-3xl' : ''} opacity-0 animate-fade-in-up`} style={{ animationDelay: `${index * 100}ms` }}>
                         <ReportCard
                             analysis={analysis}
                             isSelectedForCompare={comparisonSelection.includes(analysis.id)}
@@ -347,23 +348,28 @@ export default function HomePage() {
                         />
                     </div>
                 ))}
+                </div>
             </div>
         )}
 
         {analyses.length >= 2 && (
-          <div ref={compareButtonRef} className="text-center my-16 opacity-0 animate-fade-in-up" style={{ animationDelay: '200ms' }}>
+          <div ref={compareButtonRef} className="text-center my-12 md:my-16 opacity-0 animate-fade-in-up" style={{ animationDelay: '200ms' }}>
             <button
               onClick={handleRunComparison}
               disabled={isComparing || comparisonSelection.length !== 2}
-              className="bg-gradient-to-r from-green-600 to-emerald-600 text-white font-bold py-5 px-12 rounded-full hover:from-green-700 hover:to-emerald-700 disabled:from-gray-400 disabled:to-gray-400 disabled:cursor-not-allowed transition-all duration-300 transform hover:scale-105 disabled:scale-100 shadow-xl hover:shadow-2xl flex items-center justify-center mx-auto text-lg"
+              className="bg-gradient-to-r from-green-600 to-emerald-600 text-white font-bold py-4 md:py-5 px-8 md:px-12 rounded-full hover:from-green-700 hover:to-emerald-700 disabled:from-gray-400 disabled:to-gray-400 disabled:cursor-not-allowed transition-all duration-300 transform hover:scale-105 disabled:scale-100 shadow-xl hover:shadow-2xl flex items-center justify-center mx-auto text-base md:text-lg"
             >
-              {isComparing ? <ArrowPathIcon className="animate-spin h-7 w-7 mr-3" /> : <ChevronDoubleDownIcon className="h-7 w-7 mr-3" />}
+              {isComparing ? <ArrowPathIcon className="animate-spin h-6 w-6 md:h-7 md:w-7 mr-3" /> : <ChevronDoubleDownIcon className="h-6 w-6 md:h-7 md:w-7 mr-3" />}
               {isComparing ? 'Generating Insight...' : `Compare (${comparisonSelection.length}/2 Selected)`}
             </button>
           </div>
         )}
 
-        {comparisonResult && <ComparisonView result={comparisonResult} />}
+        {comparisonResult && (
+          <div className="mt-12 md:mt-16">
+            <ComparisonView result={comparisonResult} />
+          </div>
+        )}
         
         {/* Toast Notification */}
         <Toast
